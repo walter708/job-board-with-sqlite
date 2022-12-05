@@ -1,5 +1,5 @@
 import knex from 'knex';
-
+import DataLoader from 'dataloader';
 export const db = knex({
   client: 'better-sqlite3',
   connection: {
@@ -7,3 +7,17 @@ export const db = knex({
   },
   useNullAsDefault: true,
 });
+
+db.on('query', ({sql, bindings})=>{
+  console.log('[db] ', sql, bindings)
+})
+
+export const createCompanyLoader = () =>  new DataLoader(async (companyIds) => {
+  console.log("[companyLoader] companyIds", companyIds)
+  const companies = await db.select().from('companies').whereIn('id', companyIds);
+  return companyIds.map(companyId => {
+    return companies.find(company => company.id === companyId)
+  })
+  
+})
+  

@@ -6,6 +6,7 @@ import { readFile } from 'fs/promises';
 import jwt from 'jsonwebtoken';
 import { db } from './db.js';
 import { resolvers } from './resolvers.js';
+import { createCompanyLoader } from './db.js';
 
 const PORT = 9000;
 const JWT_SECRET = Buffer.from('Zn8Q5tyZ/G1MHltc4F/gTkVJMlrbKiZt', 'base64');
@@ -30,11 +31,12 @@ app.post('/login', async (req, res) => {
 
 const typeDefs = await readFile('./schema.graphql', 'utf-8');
 const context = async ({ req }) => {
+  const companyLoader = createCompanyLoader()
   if (req.auth) {
     const user = await db.select().from('users').where('id', req.auth.sub).first();
-    return { user };
+    return { user, companyLoader };
   }
-  return {};
+  return {companyLoader};
 };
 const apolloServer = new ApolloServer({ typeDefs, resolvers, context });
 await apolloServer.start();
